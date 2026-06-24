@@ -1,0 +1,6 @@
+{
+  "name": "Smart Home Care System",
+  "description": "An offline-first mobile-friendly application for managing pet feeding, walking, medicine, and plant watering, sunlight, fertilizer, combined with a comprehensive diary notes logging system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

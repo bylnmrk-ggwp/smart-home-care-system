@@ -1,0 +1,364 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom modern scrollbars and focus states */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc; /* Slate 50 */
+  color: #0f172a; /* Slate 900 */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 🌙 THEME Overrides for smartphone frame */
+#phone-container.theme-dark {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+#phone-container.theme-dark .bg-white {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+#phone-container.theme-dark .text-slate-800,
+#phone-container.theme-dark .text-slate-900,
+#phone-container.theme-dark h1,
+#phone-container.theme-dark h2,
+#phone-container.theme-dark h3,
+#phone-container.theme-dark h4 {
+  color: #f8fafc !important;
+}
+
+#phone-container.theme-dark .text-slate-700,
+#phone-container.theme-dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+#phone-container.theme-dark .text-slate-500,
+#phone-container.theme-dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+#phone-container.theme-dark .border-slate-50,
+#phone-container.theme-dark .border-slate-100,
+#phone-container.theme-dark .border-slate-150,
+#phone-container.theme-dark .border-slate-200 {
+  border-color: #334155 !important;
+}
+
+#phone-container.theme-dark input,
+#phone-container.theme-dark select,
+#phone-container.theme-dark textarea {
+  background-color: #334155 !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+}
+
+#phone-container.theme-dark .bg-slate-50,
+#phone-container.theme-dark .bg-slate-50\/80 {
+  background-color: #1e293b !important;
+}
+
+/* 🌿 NATURE THEME Overrides for smartphone frame */
+#phone-container.theme-nature {
+  background-color: #e6f2e6 !important;
+  color: #0a1e0d !important;
+  border-color: #a8d8a8 !important;
+}
+
+#phone-container.theme-nature .bg-white {
+  background-color: #d4ead4 !important;
+  color: #0a1e0d !important;
+}
+
+#phone-container.theme-nature .text-slate-800,
+#phone-container.theme-nature .text-slate-900,
+#phone-container.theme-nature h1,
+#phone-container.theme-nature h2,
+#phone-container.theme-nature h3,
+#phone-container.theme-nature h4 {
+  color: #0a1e0d !important;
+}
+
+#phone-container.theme-nature .text-slate-700,
+#phone-container.theme-nature .text-slate-600 {
+  color: #1b5e20 !important;
+}
+
+#phone-container.theme-nature .text-slate-500,
+#phone-container.theme-nature .text-slate-400 {
+  color: #388e3c !important;
+}
+
+#phone-container.theme-nature .border-slate-50,
+#phone-container.theme-nature .border-slate-100,
+#phone-container.theme-nature .border-slate-150,
+#phone-container.theme-nature .border-slate-200 {
+  border-color: #a5d6a7 !important;
+}
+
+#phone-container.theme-nature input,
+#phone-container.theme-nature select,
+#phone-container.theme-nature textarea {
+  background-color: #f1f8e9 !important;
+  color: #0a1e0d !important;
+  border-color: #81c784 !important;
+}
+
+#phone-container.theme-nature .bg-slate-50,
+#phone-container.theme-nature .bg-slate-50\/80 {
+  background-color: #dcedc8 !important;
+}
+
+#phone-container.theme-nature button:not(.theme-nature-skip),
+#phone-container.theme-nature .btn,
+#phone-container.theme-nature [role="button"] {
+  transition: all 0.2s ease;
+}
+
+#phone-container.theme-nature button:not(.theme-nature-skip):hover,
+#phone-container.theme-nature .btn:hover {
+  filter: brightness(0.95);
+}
+
+#phone-container.theme-nature .text-emerald-500,
+#phone-container.theme-nature .text-emerald-600,
+#phone-container.theme-nature .text-emerald-700 {
+  color: #1b5e20 !important;
+}
+
+#phone-container.theme-nature .bg-emerald-50,
+#phone-container.theme-nature .bg-emerald-50\/50,
+#phone-container.theme-nature .bg-emerald-50\/60,
+#phone-container.theme-nature .bg-emerald-50\/80 {
+  background-color: #c8e6c9 !important;
+}
+
+#phone-container.theme-nature .bg-emerald-600,
+#phone-container.theme-nature .bg-emerald-600\/90 {
+  background-color: #2e7d32 !important;
+}
+
+#phone-container.theme-nature .border-emerald-100,
+#phone-container.theme-nature .border-emerald-200,
+#phone-container.theme-nature .border-emerald-400 {
+  border-color: #66bb6a !important;
+}
+
+#phone-container.theme-nature .from-emerald-400 {
+  --tw-gradient-from: #66bb6a !important;
+}
+
+#phone-container.theme-nature .to-teal-600 {
+  --tw-gradient-to: #00695c !important;
+}
+
+/* AI Assistant text contrast overrides for all themes */
+#phone-container.theme-dark .bg-white:has(.text-slate-800),
+#phone-container.theme-dark .bg-white:has(.text-slate-700),
+#phone-container.theme-dark .bg-white:has(.text-slate-600) {
+  color-scheme: dark;
+}
+
+/* ── DARK THEME overrides for Library & CRUD UI colors ── */
+#phone-container.theme-dark .text-indigo-600,
+#phone-container.theme-dark .text-indigo-700 {
+  color: #a5b4fc !important;
+}
+#phone-container.theme-dark .bg-indigo-50,
+#phone-container.theme-dark .bg-indigo-50\/80 {
+  background-color: #1e1b4b !important;
+}
+#phone-container.theme-dark .bg-indigo-600,
+#phone-container.theme-dark .bg-indigo-600\/90 {
+  background-color: #3730a3 !important;
+}
+#phone-container.theme-dark .border-indigo-100,
+#phone-container.theme-dark .border-indigo-200 {
+  border-color: #3730a3 !important;
+}
+
+#phone-container.theme-dark .text-rose-600 {
+  color: #fb7185 !important;
+}
+#phone-container.theme-dark .bg-rose-50 {
+  background-color: #4c0519 !important;
+}
+#phone-container.theme-dark .bg-rose-600 {
+  background-color: #be123c !important;
+}
+#phone-container.theme-dark .border-rose-100,
+#phone-container.theme-dark .border-rose-200 {
+  border-color: #9f1239 !important;
+}
+
+#phone-container.theme-dark .text-orange-600,
+#phone-container.theme-dark .text-orange-700 {
+  color: #fb923c !important;
+}
+#phone-container.theme-dark .bg-orange-50 {
+  background-color: #431407 !important;
+}
+#phone-container.theme-dark .bg-orange-600 {
+  background-color: #ea580c !important;
+}
+#phone-container.theme-dark .border-orange-200 {
+  border-color: #c2410c !important;
+}
+
+#phone-container.theme-dark .text-emerald-600,
+#phone-container.theme-dark .text-emerald-700 {
+  color: #34d399 !important;
+}
+#phone-container.theme-dark .bg-emerald-50 {
+  background-color: #022c22 !important;
+}
+#phone-container.theme-dark .bg-emerald-600,
+#phone-container.theme-dark .bg-emerald-600\/90 {
+  background-color: #059669 !important;
+}
+#phone-container.theme-dark .border-emerald-100,
+#phone-container.theme-dark .border-emerald-200 {
+  border-color: #047857 !important;
+}
+
+#phone-container.theme-dark .bg-slate-800 {
+  background-color: #1e293b !important;
+}
+#phone-container.theme-dark .bg-slate-900 {
+  background-color: #0f172a !important;
+}
+
+/* ── NATURE THEME overrides for Library & CRUD UI colors ── */
+#phone-container.theme-nature .text-indigo-600,
+#phone-container.theme-nature .text-indigo-700 {
+  color: #1b5e20 !important;
+}
+#phone-container.theme-nature .bg-indigo-50,
+#phone-container.theme-nature .bg-indigo-100\/60 {
+  background-color: #d4ead4 !important;
+}
+#phone-container.theme-nature .bg-indigo-600,
+#phone-container.theme-nature .bg-indigo-600\/90 {
+  background-color: #2e7d32 !important;
+}
+#phone-container.theme-nature .border-indigo-100,
+#phone-container.theme-nature .border-indigo-200 {
+  border-color: #66bb6a !important;
+}
+#phone-container.theme-nature .from-indigo-50 {
+  --tw-gradient-from: #d4ead4 !important;
+}
+#phone-container.theme-nature .to-indigo-100\/60 {
+  --tw-gradient-to: #c8e6c9 !important;
+}
+
+#phone-container.theme-nature .text-rose-600 {
+  color: #1b5e20 !important;
+}
+#phone-container.theme-nature .bg-rose-50,
+#phone-container.theme-nature .bg-rose-50\/50 {
+  background-color: #c8e6c9 !important;
+}
+#phone-container.theme-nature .bg-rose-600 {
+  background-color: #2e7d32 !important;
+}
+#phone-container.theme-nature .border-rose-100,
+#phone-container.theme-nature .border-rose-200 {
+  border-color: #66bb6a !important;
+}
+
+#phone-container.theme-nature .text-orange-600,
+#phone-container.theme-nature .text-orange-700 {
+  color: #1b5e20 !important;
+}
+#phone-container.theme-nature .bg-orange-50 {
+  background-color: #dcedc8 !important;
+}
+#phone-container.theme-nature .bg-orange-600 {
+  background-color: #2e7d32 !important;
+}
+#phone-container.theme-nature .border-orange-200 {
+  border-color: #66bb6a !important;
+}
+
+#phone-container.theme-nature .bg-slate-800 {
+  background-color: #2e7d32 !important;
+  color: #ffffff !important;
+}
+#phone-container.theme-nature .bg-slate-900 {
+  background-color: #1b5e20 !important;
+  color: #ffffff !important;
+}
+
+#phone-container.theme-dark .text-slate-300 {
+  color: #64748b !important;
+}
+
+/* ── SIDEBAR / DRAWER text visibility in dark mode ── */
+#phone-container.theme-dark .drawer-bg {
+  background-color: #1e293b !important;
+}
+#phone-container.theme-dark .drawer-header-bg {
+  background-color: #0f172a !important;
+}
+#phone-container.theme-dark .drawer-nav-active {
+  background-color: #334155 !important;
+  border-color: #475569 !important;
+}
+#phone-container.theme-dark .drawer-nav-hover:hover {
+  background-color: #1e293b !important;
+}
+
+/* ── SIDEBAR / DRAWER text visibility in nature mode ── */
+#phone-container.theme-nature .drawer-bg {
+  background-color: #d4ead4 !important;
+}
+#phone-container.theme-nature .drawer-header-bg {
+  background-color: #c8e6c9 !important;
+}
+#phone-container.theme-nature .drawer-nav-active {
+  background-color: #c8e6c9 !important;
+  border-color: #a5d6a7 !important;
+}
+
+/* High contrast text in AI chat messages across themes */
+.ai-assistant-user-msg {
+  color: #ffffff !important;
+}
+
+#phone-container.theme-dark .text-slate-800.ai-message-content,
+#phone-container.theme-dark .ai-message-content {
+  color: #e2e8f0 !important;
+}
+
+#phone-container.theme-nature .text-slate-800.ai-message-content,
+#phone-container.theme-nature .ai-message-content {
+  color: #0a1e0d !important;
+}
+
+
