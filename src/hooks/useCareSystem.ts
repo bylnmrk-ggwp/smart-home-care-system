@@ -72,7 +72,7 @@ export function useCareSystem() {
   // Sync function - syncs pending records when online
   const syncData = async () => {
     try {
-      const pendingRecords = getPendingSyncRecords();
+      const pendingRecords = await getPendingSyncRecords();
       
       if (pendingRecords.length > 0) {
         console.log(`Syncing ${pendingRecords.length} pending records...`);
@@ -732,73 +732,76 @@ export function useCareSystem() {
     localStorage.setItem('care_system_logs', JSON.stringify([]));
   };
 
-  const restoreData = (imported: any): boolean => {
+  const restoreData = async (imported: any): Promise<boolean> => {
     try {
       if (imported.care_system_pets) {
         const parsed = JSON.parse(imported.care_system_pets);
         setPets(parsed);
         localStorage.setItem('care_system_pets', imported.care_system_pets);
         // Update database
-        parsed.forEach((pet: Pet) => {
-          const existing = getPetById(pet.id);
+        for (const pet of parsed) {
+          const existing = await getPetById(pet.id);
           if (existing) {
-            dbUpdatePet(pet);
+            await dbUpdatePet(pet);
           } else {
-            insertPet(pet);
+            await insertPet(pet);
           }
-        });
+        }
       }
       if (imported.care_system_plants) {
         const parsed = JSON.parse(imported.care_system_plants);
         setPlants(parsed);
         localStorage.setItem('care_system_plants', imported.care_system_plants);
         // Update database
-        parsed.forEach((plant: Plant) => {
-          const existing = getPlantById(plant.id);
+        for (const plant of parsed) {
+          const existing = await getPlantById(plant.id);
           if (existing) {
-            dbUpdatePlant(plant);
+            await dbUpdatePlant(plant);
           } else {
-            insertPlant(plant);
+            await insertPlant(plant);
           }
-        });
+        }
       }
       if (imported.care_system_schedules) {
         const parsed = JSON.parse(imported.care_system_schedules);
         setSchedules(parsed);
         localStorage.setItem('care_system_schedules', imported.care_system_schedules);
         // Update database
-        parsed.forEach((schedule: Schedule) => {
-          const existing = getAllSchedules().find(s => s.id === schedule.id);
+        const dbSchedules = await getAllSchedules();
+        for (const schedule of parsed) {
+          const existing = dbSchedules.find(s => s.id === schedule.id);
           if (existing) {
-            dbUpdateSchedule(schedule);
+            await dbUpdateSchedule(schedule);
           } else {
-            insertSchedule(schedule);
+            await insertSchedule(schedule);
           }
-        });
+        }
       }
       if (imported.care_system_diary) {
         const parsed = JSON.parse(imported.care_system_diary);
         setDiary(parsed);
         localStorage.setItem('care_system_diary', imported.care_system_diary);
         // Update database
-        parsed.forEach((entry: DiaryEntry) => {
-          const existing = getAllDiaryEntries().find(d => d.id === entry.id);
+        const dbDiary = await getAllDiaryEntries();
+        for (const entry of parsed) {
+          const existing = dbDiary.find(d => d.id === entry.id);
           if (!existing) {
-            insertDiaryEntry(entry);
+            await insertDiaryEntry(entry);
           }
-        });
+        }
       }
       if (imported.care_system_logs) {
         const parsed = JSON.parse(imported.care_system_logs);
         setLogs(parsed);
         localStorage.setItem('care_system_logs', imported.care_system_logs);
         // Update database
-        parsed.forEach((log: CareLog) => {
-          const existing = getAllCareLogs().find(l => l.id === log.id);
+        const dbLogs = await getAllCareLogs();
+        for (const log of parsed) {
+          const existing = dbLogs.find(l => l.id === log.id);
           if (!existing) {
-            insertCareLog(log);
+            await insertCareLog(log);
           }
-        });
+        }
       }
       if (imported.care_system_settings) {
         localStorage.setItem('care_system_settings', imported.care_system_settings);

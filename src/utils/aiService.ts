@@ -35,11 +35,14 @@ export async function sendMessage(
     throw new Error('offline');
   }
 
-  const response = await fetch('/api/openai/v1/chat/completions', {
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${_apiKey}`
+    },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'llama3-70b-8192',
       messages: buildMessages(messages),
       max_tokens: 500,
       stream: true,

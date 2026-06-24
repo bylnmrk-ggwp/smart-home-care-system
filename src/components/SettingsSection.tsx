@@ -22,7 +22,7 @@ interface SettingsSectionProps {
   logsCount: number;
   onResetAllData: () => void;
   onResetPetsAndPlants: () => void;
-  onRestoreData: (imported: any) => boolean;
+  onRestoreData: (imported: any) => Promise<boolean>;
   onOpenEmergency: () => void;
 }
 
@@ -115,14 +115,14 @@ export function SettingsSection({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async () => {
       try {
-        const text = event.target?.result as string;
+        const text = reader.result as string;
         const parsed = JSON.parse(text);
 
         if (!parsed.care_system_pets && !parsed.care_system_plants) {
@@ -130,7 +130,7 @@ export function SettingsSection({
           return;
         }
 
-        const success = onRestoreData(parsed);
+        const success = await onRestoreData(parsed);
         if (success) {
           showSuccess(lang === 'tl' ? 'Matagumpay na naibalik ang mga data!' : 'Data restored successfully!');
         } else {

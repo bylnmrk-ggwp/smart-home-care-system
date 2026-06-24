@@ -54,7 +54,7 @@ export function trackChange(
  * Sync pending changes with backend
  */
 export async function syncWithBackend(): Promise<{ success: number; failed: number }> {
-  const pendingRecords = getPendingSyncRecords();
+  const pendingRecords = await getPendingSyncRecords();
   
   if (pendingRecords.length === 0) {
     return { success: 0, failed: 0 };
@@ -131,12 +131,12 @@ export function stopAutoSync(): void {
 /**
  * Get sync status
  */
-export function getSyncStatus(): {
+export async function getSyncStatus(): Promise<{
   pending: number;
   isOnline: boolean;
   lastSync: string | null;
-} {
-  const pendingRecords = getPendingSyncRecords();
+}> {
+  const pendingRecords = await getPendingSyncRecords();
   const lastSync = localStorage.getItem('care_system_last_sync');
   
   return {

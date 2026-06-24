@@ -306,7 +306,7 @@ export function AIAssistant({ lang, apiKey, enabled, theme, isOpen, onOpenChange
                 {online ? 'Online' : 'Offline'}
               </span>
               <span className="text-xs text-white/30 mx-1">·</span>
-                      <span className="text-xs text-white/50 font-mono">GPT-4o Mini</span>
+                      <span className="text-xs text-white/50 font-mono">Llama 3</span>
             </div>
           </div>
         </div>
@@ -348,13 +348,13 @@ export function AIAssistant({ lang, apiKey, enabled, theme, isOpen, onOpenChange
 
       {/* Voice Recording Section */}
       <div className={`px-4 py-3 border-b ${c.dividerBorder}`}>
-        <button
-          onClick={() => setShowVoiceRecorder(!showVoiceRecorder)}
-          className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition"
-        >
-          <Mic size={14} />
-          {lang === 'tl' ? 'Custom Voice Recording' : 'Custom Voice Recording'}
-        </button>
+<button
+           onClick={() => setShowVoiceRecorder(!showVoiceRecorder)}
+           className="flex items-center gap-2 text-xs font-bold text-indigo-600 hover:text-indigo-700 transition"
+         >
+           <Mic size={14} />
+           {lang === 'tl' ? 'Custom na Voice Recording' : 'Custom Voice Recording'}
+         </button>
         
         {showVoiceRecorder && (
           <div className="mt-3 space-y-3">
@@ -505,7 +505,7 @@ export function AIAssistant({ lang, apiKey, enabled, theme, isOpen, onOpenChange
               <Bot size={15} className="text-white" />
             </div>
             <div className="flex flex-col max-w-[80%]">
-              <span className={`text-xs font-bold ${c.timestampText} uppercase tracking-wider mb-1`}>Gemini</span>
+              <span className={`text-xs font-bold ${c.timestampText} uppercase tracking-wider mb-1`}>Llama 3</span>
               <div className={`px-4 py-3 rounded-2xl rounded-tl-md ${c.msgBgAssistant} border ${c.msgBorderAssistant} shadow-xs`}>
                 <div className={`flex items-center gap-2 ${c.thinkingText} text-xs`}>
                   <Loader2 size={14} className="animate-spin text-indigo-500" />
