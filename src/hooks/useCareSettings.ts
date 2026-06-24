@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Language } from '../utils/translations';
+import { getSetting, setSetting, getAllSettings } from '../utils/dbService';
+import { initializeDatabase } from '../utils/database';
 
 export interface AppSettings {
   language: Language;
@@ -102,20 +104,62 @@ const SOUND_PATTERNS: Record<string, { freqs: number[]; type?: OscillatorType }>
 
 export function useCareSettings(onLangChange: (lang: Language) => void) {
   const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('care_system_settings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return { ...DEFAULT_SETTINGS, ...parsed };
-      } catch (e) {
-        return DEFAULT_SETTINGS;
-      }
-    }
+    // Start with default settings, will load from DB async
     return DEFAULT_SETTINGS;
   });
 
   useEffect(() => {
-    localStorage.setItem('care_system_settings', JSON.stringify(settings));
+    const loadSettings = async () => {
+      try {
+        // Try to load from database first
+        await initializeDatabase();
+        const dbSettings = await getAllSettings();
+        if (Object.keys(dbSettings).length > 0) {
+          // Parse settings from database
+          const parsed: Partial<AppSettings> = {};
+          Object.keys(dbSettings).forEach(key => {
+            try {
+              (parsed as any)[key] = JSON.parse(dbSettings[key]);
+            } catch {
+              (parsed as any)[key] = dbSettings[key];
+            }
+          });
+          setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        }
+      } catch (e) {
+        console.error('Failed to load settings from database:', e);
+        // Fallback to localStorage
+        const saved = localStorage.getItem('care_system_settings');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+          } catch (e) {
+            setSettings(DEFAULT_SETTINGS);
+          }
+        }
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  useEffect(() => {
+    const saveSettings = async () => {
+      // Save to database
+      try {
+        await initializeDatabase();
+        Object.entries(settings).forEach(async ([key, value]) => {
+          await setSetting(key, JSON.stringify(value));
+        });
+      } catch (e) {
+        console.error('Failed to save settings to database:', e);
+        // Fallback to localStorage
+        localStorage.setItem('care_system_settings', JSON.stringify(settings));
+      }
+    };
+
+    saveSettings();
     onLangChange(settings.language);
     applyTheme(settings.theme);
   }, [settings]);

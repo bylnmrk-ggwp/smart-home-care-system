@@ -8,6 +8,36 @@ import {
   INITIAL_LOGS,
   getRelativeDateString
 } from '../data/mockData';
+import {
+  getAllPets,
+  getPetById,
+  insertPet,
+  updatePet as dbUpdatePet,
+  deletePet as dbDeletePet,
+  getAllPlants,
+  getPlantById,
+  insertPlant,
+  updatePlant as dbUpdatePlant,
+  deletePlant as dbDeletePlant,
+  getAllSchedules,
+  insertSchedule,
+  updateSchedule as dbUpdateSchedule,
+  deleteSchedule as dbDeleteSchedule,
+  getAllDiaryEntries,
+  insertDiaryEntry,
+  deleteDiaryEntry as dbDeleteDiaryEntry,
+  getAllCareLogs,
+  insertCareLog,
+  deleteCareLog as dbDeleteCareLog,
+  getSetting,
+  setSetting,
+  addSyncRecord,
+  getPendingSyncRecords,
+  markSyncRecordAsSynced,
+  clearSyncedRecords
+} from '../utils/dbService';
+import { initializeDatabase, hasInitialData, resetDatabase } from '../utils/database';
+import { trackChange, startAutoSync, stopAutoSync, getSyncStatus } from '../utils/syncService';
 
 export function useCareSystem() {
   const [pets, setPets] = useState<Pet[]>([]);
@@ -29,17 +59,34 @@ export function useCareSystem() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Start auto-sync
+    startAutoSync();
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      stopAutoSync();
     };
   }, []);
 
-  // Sync function (placeholder for future backend sync)
+  // Sync function - syncs pending records when online
   const syncData = async () => {
     try {
-      // In a real implementation, this would sync with a backend API
-      // For now, we just update the last sync time
+      const pendingRecords = getPendingSyncRecords();
+      
+      if (pendingRecords.length > 0) {
+        console.log(`Syncing ${pendingRecords.length} pending records...`);
+        
+        // In a real implementation, this would send data to a backend API
+        // For now, we just mark them as synced
+        pendingRecords.forEach(record => {
+          markSyncRecordAsSynced(record.id);
+        });
+        
+        // Clear synced records
+        clearSyncedRecords();
+      }
+      
       const now = new Date().toISOString();
       localStorage.setItem('care_system_last_sync', now);
       setLastSyncTime(now);
@@ -49,78 +96,171 @@ export function useCareSystem() {
     }
   };
 
-  // Initialize from LocalStorage or mock data
+  // Initialize from database or mock data
   useEffect(() => {
-    const localPets = localStorage.getItem('care_system_pets');
-    const localPlants = localStorage.getItem('care_system_plants');
-    const localSchedules = localStorage.getItem('care_system_schedules');
-    const localDiary = localStorage.getItem('care_system_diary');
-    const localLogs = localStorage.getItem('care_system_logs');
+    const loadData = async () => {
+      try {
+        // Initialize database
+        await initializeDatabase();
 
-    if (localPets) setPets(JSON.parse(localPets));
-    else {
-      setPets(INITIAL_PETS);
-      localStorage.setItem('care_system_pets', JSON.stringify(INITIAL_PETS));
-    }
+        // Check if database has initial data
+        const hasData = await hasInitialData();
 
-    if (localPlants) setPlants(JSON.parse(localPlants));
-    else {
-      setPlants(INITIAL_PLANTS);
-      localStorage.setItem('care_system_plants', JSON.stringify(INITIAL_PLANTS));
-    }
+        if (hasData) {
+          // Load from database
+          setPets(await getAllPets());
+          setPlants(await getAllPlants());
+          setSchedules(await getAllSchedules());
+          setDiary(await getAllDiaryEntries());
+          setLogs(await getAllCareLogs());
+        } else {
+          // Seed database with initial mock data
+          for (const pet of INITIAL_PETS) await insertPet(pet);
+          for (const plant of INITIAL_PLANTS) await insertPlant(plant);
+          for (const schedule of INITIAL_SCHEDULES) await insertSchedule(schedule);
+          for (const entry of INITIAL_DIARY) await insertDiaryEntry(entry);
+          for (const log of INITIAL_LOGS) await insertCareLog(log);
 
-    if (localSchedules) setSchedules(JSON.parse(localSchedules));
-    else {
-      setSchedules(INITIAL_SCHEDULES);
-      localStorage.setItem('care_system_schedules', JSON.stringify(INITIAL_SCHEDULES));
-    }
+          // Set state from seeded data
+          setPets(INITIAL_PETS);
+          setPlants(INITIAL_PLANTS);
+          setSchedules(INITIAL_SCHEDULES);
+          setDiary(INITIAL_DIARY);
+          setLogs(INITIAL_LOGS);
+        }
 
-    if (localDiary) setDiary(JSON.parse(localDiary));
-    else {
-      setDiary(INITIAL_DIARY);
-      localStorage.setItem('care_system_diary', JSON.stringify(INITIAL_DIARY));
-    }
+        // Sync on initial load if online
+        if (navigator.onLine) {
+          syncData();
+        }
+      } catch (error) {
+        console.error('Failed to initialize database:', error);
+        // Fallback to localStorage if database fails
+        const localPets = localStorage.getItem('care_system_pets');
+        const localPlants = localStorage.getItem('care_system_plants');
+        const localSchedules = localStorage.getItem('care_system_schedules');
+        const localDiary = localStorage.getItem('care_system_diary');
+        const localLogs = localStorage.getItem('care_system_logs');
 
-    if (localLogs) setLogs(JSON.parse(localLogs));
-    else {
-      setLogs(INITIAL_LOGS);
-      localStorage.setItem('care_system_logs', JSON.stringify(INITIAL_LOGS));
-    }
+        if (localPets) setPets(JSON.parse(localPets));
+        else setPets(INITIAL_PETS);
 
-    // Sync on initial load if online
-    if (navigator.onLine) {
-      syncData();
-    }
+        if (localPlants) setPlants(JSON.parse(localPlants));
+        else setPlants(INITIAL_PLANTS);
+
+        if (localSchedules) setSchedules(JSON.parse(localSchedules));
+        else setSchedules(INITIAL_SCHEDULES);
+
+        if (localDiary) setDiary(JSON.parse(localDiary));
+        else setDiary(INITIAL_DIARY);
+
+        if (localLogs) setLogs(JSON.parse(localLogs));
+        else setLogs(INITIAL_LOGS);
+      }
+    };
+
+    loadData();
   }, []);
 
-  // Sync to LocalStorage whenever state changes
-  const savePets = (newPets: Pet[]) => {
+  // Save to database whenever state changes
+  const savePets = async (newPets: Pet[]) => {
     setPets(newPets);
-    localStorage.setItem('care_system_pets', JSON.stringify(newPets));
+    // Sync with database - find new/updated pets and save them
+    for (const pet of newPets) {
+      const existing = await getPetById(pet.id);
+      if (existing) {
+        await dbUpdatePet(pet);
+      } else {
+        await insertPet(pet);
+      }
+    }
+    // Remove deleted pets from database
+    const currentDbPets = await getAllPets();
+    for (const dbPet of currentDbPets) {
+      if (!newPets.find(p => p.id === dbPet.id)) {
+        await dbDeletePet(dbPet.id);
+      }
+    }
     if (isOnline) syncData();
   };
 
-  const savePlants = (newPlants: Plant[]) => {
+  const savePlants = async (newPlants: Plant[]) => {
     setPlants(newPlants);
-    localStorage.setItem('care_system_plants', JSON.stringify(newPlants));
+    // Sync with database
+    for (const plant of newPlants) {
+      const existing = await getPlantById(plant.id);
+      if (existing) {
+        await dbUpdatePlant(plant);
+      } else {
+        await insertPlant(plant);
+      }
+    }
+    // Remove deleted plants from database
+    const currentDbPlants = await getAllPlants();
+    for (const dbPlant of currentDbPlants) {
+      if (!newPlants.find(p => p.id === dbPlant.id)) {
+        await dbDeletePlant(dbPlant.id);
+      }
+    }
     if (isOnline) syncData();
   };
 
-  const saveSchedules = (newSchedules: Schedule[]) => {
+  const saveSchedules = async (newSchedules: Schedule[]) => {
     setSchedules(newSchedules);
-    localStorage.setItem('care_system_schedules', JSON.stringify(newSchedules));
+    // Sync with database
+    const currentDbSchedules = await getAllSchedules();
+    for (const schedule of newSchedules) {
+      const existing = currentDbSchedules.find(s => s.id === schedule.id);
+      if (existing) {
+        await dbUpdateSchedule(schedule);
+      } else {
+        await insertSchedule(schedule);
+      }
+    }
+    // Remove deleted schedules from database
+    for (const dbSchedule of currentDbSchedules) {
+      if (!newSchedules.find(s => s.id === dbSchedule.id)) {
+        await dbDeleteSchedule(dbSchedule.id);
+      }
+    }
     if (isOnline) syncData();
   };
 
-  const saveDiary = (newDiary: DiaryEntry[]) => {
+  const saveDiary = async (newDiary: DiaryEntry[]) => {
     setDiary(newDiary);
-    localStorage.setItem('care_system_diary', JSON.stringify(newDiary));
+    // Sync with database
+    const currentDbDiary = await getAllDiaryEntries();
+    for (const entry of newDiary) {
+      const existing = currentDbDiary.find(d => d.id === entry.id);
+      if (!existing) {
+        await insertDiaryEntry(entry);
+      }
+    }
+    // Remove deleted entries from database
+    for (const dbEntry of currentDbDiary) {
+      if (!newDiary.find(d => d.id === dbEntry.id)) {
+        await dbDeleteDiaryEntry(dbEntry.id);
+      }
+    }
     if (isOnline) syncData();
   };
 
-  const saveLogs = (newLogs: CareLog[]) => {
+  const saveLogs = async (newLogs: CareLog[]) => {
     setLogs(newLogs);
-    localStorage.setItem('care_system_logs', JSON.stringify(newLogs));
+    // Sync with database
+    const currentDbLogs = await getAllCareLogs();
+    for (const log of newLogs) {
+      const existing = currentDbLogs.find(l => l.id === log.id);
+      if (!existing) {
+        await insertCareLog(log);
+      }
+    }
+    // Remove deleted logs from database
+    for (const dbLog of currentDbLogs) {
+      if (!newLogs.find(l => l.id === dbLog.id)) {
+        await dbDeleteCareLog(dbLog.id);
+      }
+    }
     if (isOnline) syncData();
   };
 
@@ -548,7 +688,11 @@ export function useCareSystem() {
   };
 
   // --- STORAGE & RESET CONTROLS ---
-  const resetAllData = () => {
+  const resetAllData = async () => {
+    // Reset database
+    await resetDatabase();
+    
+    // Clear localStorage
     localStorage.removeItem('care_system_pets');
     localStorage.removeItem('care_system_plants');
     localStorage.removeItem('care_system_schedules');
@@ -556,20 +700,25 @@ export function useCareSystem() {
     localStorage.removeItem('care_system_logs');
     localStorage.removeItem('care_system_settings');
 
+    // Re-seed database with initial data
+    for (const pet of INITIAL_PETS) await insertPet(pet);
+    for (const plant of INITIAL_PLANTS) await insertPlant(plant);
+    for (const schedule of INITIAL_SCHEDULES) await insertSchedule(schedule);
+    for (const entry of INITIAL_DIARY) await insertDiaryEntry(entry);
+    for (const log of INITIAL_LOGS) await insertCareLog(log);
+
+    // Set state
     setPets(INITIAL_PETS);
     setPlants(INITIAL_PLANTS);
     setSchedules(INITIAL_SCHEDULES);
     setDiary(INITIAL_DIARY);
     setLogs(INITIAL_LOGS);
-
-    localStorage.setItem('care_system_pets', JSON.stringify(INITIAL_PETS));
-    localStorage.setItem('care_system_plants', JSON.stringify(INITIAL_PLANTS));
-    localStorage.setItem('care_system_schedules', JSON.stringify(INITIAL_SCHEDULES));
-    localStorage.setItem('care_system_diary', JSON.stringify(INITIAL_DIARY));
-    localStorage.setItem('care_system_logs', JSON.stringify(INITIAL_LOGS));
   };
 
-  const resetPetsAndPlants = () => {
+  const resetPetsAndPlants = async () => {
+    // Clear all data from database
+    await resetDatabase();
+    
     setPets([]);
     setPlants([]);
     setSchedules([]);
@@ -589,26 +738,67 @@ export function useCareSystem() {
         const parsed = JSON.parse(imported.care_system_pets);
         setPets(parsed);
         localStorage.setItem('care_system_pets', imported.care_system_pets);
+        // Update database
+        parsed.forEach((pet: Pet) => {
+          const existing = getPetById(pet.id);
+          if (existing) {
+            dbUpdatePet(pet);
+          } else {
+            insertPet(pet);
+          }
+        });
       }
       if (imported.care_system_plants) {
         const parsed = JSON.parse(imported.care_system_plants);
         setPlants(parsed);
         localStorage.setItem('care_system_plants', imported.care_system_plants);
+        // Update database
+        parsed.forEach((plant: Plant) => {
+          const existing = getPlantById(plant.id);
+          if (existing) {
+            dbUpdatePlant(plant);
+          } else {
+            insertPlant(plant);
+          }
+        });
       }
       if (imported.care_system_schedules) {
         const parsed = JSON.parse(imported.care_system_schedules);
         setSchedules(parsed);
         localStorage.setItem('care_system_schedules', imported.care_system_schedules);
+        // Update database
+        parsed.forEach((schedule: Schedule) => {
+          const existing = getAllSchedules().find(s => s.id === schedule.id);
+          if (existing) {
+            dbUpdateSchedule(schedule);
+          } else {
+            insertSchedule(schedule);
+          }
+        });
       }
       if (imported.care_system_diary) {
         const parsed = JSON.parse(imported.care_system_diary);
         setDiary(parsed);
         localStorage.setItem('care_system_diary', imported.care_system_diary);
+        // Update database
+        parsed.forEach((entry: DiaryEntry) => {
+          const existing = getAllDiaryEntries().find(d => d.id === entry.id);
+          if (!existing) {
+            insertDiaryEntry(entry);
+          }
+        });
       }
       if (imported.care_system_logs) {
         const parsed = JSON.parse(imported.care_system_logs);
         setLogs(parsed);
         localStorage.setItem('care_system_logs', imported.care_system_logs);
+        // Update database
+        parsed.forEach((log: CareLog) => {
+          const existing = getAllCareLogs().find(l => l.id === log.id);
+          if (!existing) {
+            insertCareLog(log);
+          }
+        });
       }
       if (imported.care_system_settings) {
         localStorage.setItem('care_system_settings', imported.care_system_settings);
